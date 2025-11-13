@@ -16,6 +16,8 @@ export interface Graph {
   selectedNode: NodeData | null;
   path: string;
   aboveSupportedLimit: boolean;
+  editingNodeId: string | null;
+  editingValue: string;
 }
 
 const initialStates: Graph = {
@@ -28,6 +30,8 @@ const initialStates: Graph = {
   selectedNode: null,
   path: "",
   aboveSupportedLimit: false,
+  editingNodeId: null,
+  editingValue: "",
 };
 
 interface GraphActions {
@@ -43,6 +47,8 @@ interface GraphActions {
   centerView: () => void;
   clearGraph: () => void;
   setZoomFactor: (zoomFactor: number) => void;
+  setEditingNode: (nodeId: string | null, value?: string) => void;
+  updateNodeValue: (value: string) => void;
 }
 
 const useGraph = create<Graph & GraphActions>((set, get) => ({
@@ -101,6 +107,20 @@ const useGraph = create<Graph & GraphActions>((set, get) => ({
   },
   toggleFullscreen: fullscreen => set({ fullscreen }),
   setViewPort: viewPort => set({ viewPort }),
+
+  setEditingNode: (nodeId, value) => {
+    set({
+      editingNodeId: nodeId,
+      editingValue: value || get().selectedNode?.text[0].value?.toString() || "",
+    });
+  },
+  updateNodeValue: (value) => {
+    const selectedNode = get().selectedNode;
+    if (!selectedNode) return;
+
+    useJson.getState().updateNodeValue(selectedNode.path || [], value);
+    set({ editingNodeId: null, editingValue: "" });
+  },
 }));
 
 export default useGraph;
